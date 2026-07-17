@@ -6,3 +6,6 @@ from datetime import datetime
 HEADERS = {
     "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 }
+
+def scrape_loop_news(max_articles=10):
+    """This Scrapes headlines and article text from Radio Jamaica."""

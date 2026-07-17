@@ -2,7 +2,7 @@
 
 A natural language processing pipeline that scrapes articles from major Jamaican news outlets, performs sentiment analysis, and surfaces topic trends over time — revealing how different outlets frame stories around crime, politics, tourism, and the economy.
 
-**Data sources:** Jamaica Gleaner · Jamaica Observer · Loop News Jamaica
+**Data sources:** Jamaica Gleaner · Jamaica Observer · RJR News
 
 ---
 
@@ -15,7 +15,6 @@ A natural language processing pipeline that scrapes articles from major Jamaican
 - **Interactive dashboard** — sentiment trends, topic heatmaps, and outlet comparisons via Streamlit
 
 ---
-
 
 ## Tech Stack
 
@@ -36,7 +35,7 @@ jamaican-news-sentiment/
 ├── scraper/
 │   ├── gleaner.py          # Gleaner-specific scraper
 │   ├── observer.py         # Observer-specific scraper
-│   ├── loop.py             # Loop News scraper
+│   ├── rjr.py              # RJR News scraper
 │   └── base.py             # Shared scraping logic
 ├── pipeline/
 │   ├── cleaner.py          # Text preprocessing with spaCy
@@ -123,7 +122,7 @@ streamlit run dashboard/app.py
 
 - **Sentiment over time** — rolling average sentiment per outlet, filterable by topic
 - **Topic heatmap** — which themes dominated each week and in which outlet
-- **Outlet comparison** — side-by-side framing of the same story across Gleaner, Observer, and Loop
+- **Outlet comparison** — side-by-side framing of the same story across Gleaner, Observer, and RJR News
 - **Entity spotlight** — search a politician, place, or organization and view their sentiment arc
 
 ---
@@ -133,7 +132,7 @@ streamlit run dashboard/app.py
 ```
 articles
 ├── id             TEXT  PRIMARY KEY
-├── source         TEXT  (gleaner | observer | loop)
+├── source         TEXT  (gleaner | observer | rjr)
 ├── headline       TEXT
 ├── body           TEXT
 ├── url            TEXT
@@ -149,7 +148,8 @@ articles
 
 ## Roadmap
 
-- [ ] Add RJR News and CVM TV as sources
+- [x] Add RJR News as a source
+- [ ] Add CVM TV as a source
 - [ ] Patois-aware sentiment fine-tuning
 - [ ] Weekly email digest of top trending topics
 - [ ] Public deployment on Streamlit Cloud
