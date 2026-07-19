@@ -1,6 +1,6 @@
 # 📰 Jamaican News Sentiment Analyzer
 
-A natural language processing pipeline that scrapes articles from major Jamaican news outlets, performs sentiment analysis, and surfaces topic trends over time — revealing how different outlets frame stories around crime, politics, tourism, and the economy.
+A natural language processing pipeline that scrapes articles from major Jamaican news outlets, performs sentiment analysis, and surfaces topic trends over time. The goal is to reveal how different outlets frame stories around crime, politics, tourism, and the economy.
 
 **Data sources:** Jamaica Gleaner · Jamaica Observer · RJR News
 
@@ -169,4 +169,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 
 ---
 
-> Built in Jamaica 🇯🇲 — tracking the stories that shape the island.
+> Built in Jamaica -- tracking the stories that shape the island.

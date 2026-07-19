@@ -9,3 +9,18 @@ HEADERS = {
 
 def scrape_loop_news(max_articles=10):
     """This Scrapes headlines and article text from Radio Jamaica."""
+    base_url = "https://radiojamaicanewsonline.com"
+    articles = []
+
+    print (f"[RJR News] Fetching homepage....")
+    resp = requests.get(base_url, headers=HEADERS, timeout=10)
+    soup = BeautifulSoup(resp.text, "html.parser")
+
+    links = []
+    for a in soup.find_all("a", href=True): 
+        href = a["href"]
+        #RJR artticles URLs that would contain years or category slugs 
+        if any (seg in href for seg in ["/news", "/business", "/sports", "/entertainment"]):
+            full_url = href if href.startswith("http") else base_url + href
+            if full_url not in links and full_url != base_url:
+                links.append(full_url)
