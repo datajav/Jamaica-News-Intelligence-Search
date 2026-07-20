@@ -24,3 +24,16 @@ def scrape_loop_news(max_articles=10):
             full_url = href if href.startswith("http") else base_url + href
             if full_url not in links and full_url != base_url:
                 links.append(full_url)
+        if len(links) >= max_articles:
+            break
+
+        print(f"[RJR News]Found {len(links)} article links. Scraping articles....")
+
+        for url in links:
+            article = scrape_article(url, source="RJR")
+            if article:
+                articles.append(article)
+                print(f" completed{article['headline'][:70]}")
+
+        return articles
+    
