@@ -37,3 +37,16 @@ def scrape_loop_news(max_articles=10):
 
         return articles
     
+#------------------------------------------------------------------------------------------
+
+def scrape_gleaner(max_articles=10):
+    """This scapres headlines and article text from The Gleaner."""
+    base_url = "https://jamaica-gleaner.com/"
+    articles = []
+
+    print (f"[Gleaner] Fetching homepage....")
+    resp = requests.get(base_url, headers=HEADERS, timeout=10)
+    soup = BeautifulSoup(resp.text, "html.parser")
+
+    links = []
+    
