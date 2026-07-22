@@ -182,7 +182,7 @@ if __name__ == "__main__":
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_articles, f, indent=2, ensure_ascii=False)
 
-    print(f"\n✅ Scraped {len(all_articles)} articles → saved to {output_file}")
+    print(f"\n Scraped {len(all_articles)} articles → saved to {output_file}")
 
     if all_articles:
         sample = all_articles[0]
@@ -191,4 +191,4 @@ if __name__ == "__main__":
         print(f"  Headline : {sample['headline']}")
         print(f"  Body     : {sample['body'][:200]}...")
     else:
-        print("\n⚠️  No articles scraped — check the error messages above.")
+        print("\n  No articles scraped — check the error messages above.")
