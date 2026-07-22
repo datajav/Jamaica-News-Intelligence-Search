@@ -1,7 +1,12 @@
+import os
 import json
 from transformers import pipeline
+from collections import Counter
 
-# Load model 
+# Should resolve paths relative to this script's folder
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Loads model 
 
 print("Loading sentiment model (first run downloads ~500MB)...")
 sentiment_model = pipeline(
@@ -29,11 +34,18 @@ def analyze(text):
     return {"label": label, "score": round(result["score"], 4)}
 
 
-# Run 
+# Run the script.  
 
 if __name__ == "__main__":
-    # Load articles saved by scraper.py
-    with open("articles.json", "r", encoding="utf-8") as f:
+    # Load articles saved by scraper.py — always looks in the same folder as this script
+    input_file = os.path.join(SCRIPT_DIR, "articles.json")
+
+    if not os.path.exists(input_file):
+        print(f"❌ Could not find articles.json at: {input_file}")
+        print("   Make sure you ran scraper.py first.")
+        exit(1)
+
+    with open(input_file, "r", encoding="utf-8") as f:
         articles = json.load(f)
 
     print(f"Analyzing {len(articles)} articles...\n")
@@ -51,15 +63,15 @@ if __name__ == "__main__":
         print(f"{emoji} [{article['source'].upper()}] {sentiment['label'].upper()} ({sentiment['score']})")
         print(f"   {article['headline'][:80]}\n")
 
-    # Save enriched results
-    with open("articles_with_sentiment.json", "w", encoding="utf-8") as f:
+    # Save enriched results next to the input file
+    output_file = os.path.join(SCRIPT_DIR, "articles_with_sentiment.json")
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
 
     # Quick summary
-    from collections import Counter
     counts = Counter(r["label"] for r in results)
     print("─" * 50)
-    print(f" Done. Saved to articles_with_sentiment.json")
+    print(f"✅ Done. Saved to {output_file}")
     print(f"   🟢 Positive : {counts['positive']}")
     print(f"   🟡 Neutral  : {counts['neutral']}")
     print(f"   🔴 Negative : {counts['negative']}")
