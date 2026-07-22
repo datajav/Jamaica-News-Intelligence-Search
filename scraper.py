@@ -49,4 +49,22 @@ def scrape_gleaner(max_articles=10):
     soup = BeautifulSoup(resp.text, "html.parser")
 
     links = []
-    
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if "/article/" in href: 
+            full_url = href if href.startswith("http") else base_url + href
+            if full_url not in links:
+                links.append(full_url)
+        if len(links) >= max_articles:
+            break 
+
+    print(f"[Gleaner] Found {len(links)} article links. Scraping articles....")    
+
+    for url in links:
+        article = scrape_article(url, source="gleaner")
+        if article:
+            articles.append(article)
+            print(f" completed{article['headline'][:70]}")
+
+    return articles
+
