@@ -1,7 +1,11 @@
+import os
 import requests
 from bs4 import BeautifulSoup
 import json
 from datetime import datetime
+
+# Always resolve paths relative to this script's folder
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 HEADERS = {
     "User-Agent": (
@@ -14,7 +18,7 @@ HEADERS = {
 TIMEOUT = 20  # seconds — Jamaican sites can be slow
 
 
-# Helper function to fetch a homepage with error handling
+# Helper function 
 
 def fetch_homepage(url, label):
     """Safely fetch a homepage. Returns BeautifulSoup or None on failure."""
@@ -33,7 +37,7 @@ def fetch_homepage(url, label):
     return None
 
 
-# Scraper functions for each news source
+#  Scrapers for the three news sites; each returns a list of articles (dicts with headline, body, url, source, scraped_at)
 
 def scrape_nationwide(max_articles=10):
     """Scrape Nationwide News Network Jamaica (nationwideradiojm.com)."""
@@ -168,7 +172,7 @@ def scrape_article(url, source):
         return None
 
 
-# Run 
+#  Runs the functions above to scrape all three sites and save to articles.json
 
 if __name__ == "__main__":
     all_articles = []
@@ -178,11 +182,12 @@ if __name__ == "__main__":
     all_articles += scrape_observer(max_articles=5)
 
     # Save to JSON for now (database comes next)
-    output_file = "articles.json"
+    output_file = os.path.join(SCRIPT_DIR, "articles.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_articles, f, indent=2, ensure_ascii=False)
 
-    print(f"\n Scraped {len(all_articles)} articles → saved to {output_file}")
+    print(f"\n✅ Scraped {len(all_articles)} articles → saved to {output_file}")
+    print(f"   (Full path: {os.path.abspath(output_file)})")
 
     if all_articles:
         sample = all_articles[0]
@@ -191,4 +196,4 @@ if __name__ == "__main__":
         print(f"  Headline : {sample['headline']}")
         print(f"  Body     : {sample['body'][:200]}...")
     else:
-        print("\n  No articles scraped — check the error messages above.")
+        print("\n⚠️  No articles scraped — check the error messages above.")
