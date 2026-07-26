@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 from datetime import datetime
+from db import init_db, insert_article
 
 # Always resolve paths relative to this script's folder
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -175,25 +176,21 @@ def scrape_article(url, source):
 #  Runs the functions above to scrape all three sites and save to articles.json
 
 if __name__ == "__main__":
-    all_articles = []
+    init_db()
 
+    all_articles = []
     all_articles += scrape_nationwide(max_articles=5)
     all_articles += scrape_gleaner(max_articles=5)
     all_articles += scrape_observer(max_articles=5)
 
-    # Save to JSON for now (database comes next)
-    output_file = os.path.join(SCRIPT_DIR, "articles.json")
-    with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(all_articles, f, indent=2, ensure_ascii=False)
+    new_count = 0
+    dupe_count = 0
 
-    print(f"\n✅ Scraped {len(all_articles)} articles → saved to {output_file}")
-    print(f"   (Full path: {os.path.abspath(output_file)})")
+    for article in all_articles:
+        inserted = insert_article(article)
+        if inserted:
+            new_count += 1
+        else:
+            dupe_count += 1
 
-    if all_articles:
-        sample = all_articles[0]
-        print(f"\nSample article:")
-        print(f"  Source   : {sample['source']}")
-        print(f"  Headline : {sample['headline']}")
-        print(f"  Body     : {sample['body'][:200]}...")
-    else:
-        print("\n⚠️  No articles scraped — check the error messages above.")
+    print(f"\n✅ Done — {new_count} new articles saved, {dupe_count} duplicates skipped")

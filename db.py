@@ -38,3 +38,30 @@ def init_db():
 
 if __name__ == "__main__":
     init_db()
+
+
+#url to id function
+def url_to_id(url):
+    return hashlib.sha256(url.encode()).hexdigest()[:16]
+
+#insertion of article function 
+def insert_article(article):
+    conn = get_connection()
+    try:
+        conn.execute("""
+            INSERT INTO articles (id, source, headline, body, url, scraped_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            url_to_id(article["url"]),
+            article["source"],
+            article["headline"],
+            article.get("body", ""),
+            article["url"],
+            article.get("scraped_at", datetime.now().isoformat()),
+        ))
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False  # Duplicate URL — skip silently
+    finally:
+        conn.close()
