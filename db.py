@@ -6,6 +6,30 @@ from datetime import datetime
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(SCRIPT_DIR, "news.db")
 
+#this function retrieves all articles that have not been scored yet
+def get_unscored_articles():
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT * FROM articles
+        WHERE sentiment_label IS NULL
+        ORDER BY scraped_at ASC
+    """).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+#this creates a function that saves the sentiment label and score for a given article
+def save_sentiment(article_id, label, score):
+    conn = get_connection()
+    conn.execute("""
+        UPDATE articles
+        SET sentiment_label = ?,
+            sentiment_score = ?,
+            scored_at       = ?
+        WHERE id = ?
+    """, (label, score, datetime.now().isoformat(), article_id))
+    conn.commit()
+    conn.close()
+
 #This function creates the database and the articles table if they don't exist
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
@@ -65,3 +89,4 @@ def insert_article(article):
         return False  # Duplicate URL — skip silently
     finally:
         conn.close()
+
