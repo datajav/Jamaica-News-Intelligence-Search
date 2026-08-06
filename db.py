@@ -90,3 +90,12 @@ def insert_article(article):
     finally:
         conn.close()
 
+def get_all_articles():
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT * FROM articles
+        ORDER BY scraped_at DESC
+    """).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
