@@ -3,9 +3,11 @@ import plotly.express as px
 import pandas as pd
 from db import get_all_articles
 
+# Title for the Streamlit app
 st.set_page_config(page_title="Jamaican News Sentiment", layout="wide")
 st.title("📰 Jamaican News Sentiment Analyzer")
 
+#This function retrieves all articles from the database and displays them in a table
 articles = get_all_articles()
 
 if not articles:
@@ -16,6 +18,7 @@ df = pd.DataFrame(articles)
 df["scraped_at"] = pd.to_datetime(df["scraped_at"])
 df = df.dropna(subset=["sentiment_label"])
 
+#A sentiment breakdown chart that shows the distribution of sentiment labels in the dataset
 st.subheader("Overall Sentiment Breakdown")
 
 sentiment_counts = df["sentiment_label"].value_counts().reset_index()
@@ -33,6 +36,7 @@ fig = px.pie(
     }
 )
 
+# A pie chart that shows the distribution of sentiment labels in the dataset
 st.plotly_chart(fig, use_container_width=True)
 
 st.subheader("Sentiment by Source")
