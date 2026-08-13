@@ -57,3 +57,42 @@ fig2 = px.bar(
 )
 
 st.plotly_chart(fig2, use_container_width=True)
+
+#Adds a table to the Streamlit app that displays the recent articles along with their sentiment labels and confidence scores
+
+st.subheader("Recent Articles")
+
+table = df[["scraped_at", "source", "headline", "sentiment_label", "sentiment_score"]].copy()
+table["scraped_at"] = table["scraped_at"].dt.strftime("%Y-%m-%d %H:%M")
+table = table.rename(columns={
+    "scraped_at": "Date",
+    "source": "Source",
+    "headline": "Headline",
+    "sentiment_label": "Sentiment",
+    "sentiment_score": "Confidence"
+})
+
+st.dataframe(table, width='stretch')
+
+#
+
+st.subheader("Sentiment Over Time")
+
+df["date"] = df["scraped_at"].dt.date
+
+trend = df.groupby(["date", "sentiment_label"]).size().reset_index(name="count")
+
+fig3 = px.line(
+    trend,
+    x="date",
+    y="count",
+    color="sentiment_label",
+    markers=True,
+    color_discrete_map={
+        "positive": "#2ecc71",
+        "neutral": "#f1c40f",
+        "negative": "#e74c3c"
+    }
+)
+
+st.plotly_chart(fig3, width='stretch')
