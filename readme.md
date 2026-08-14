@@ -1,4 +1,4 @@
-# 📰 Jamaican News Sentiment Analyzer
+# Jamaican News Sentiment Analyzer
 
 A natural language processing pipeline that scrapes articles from major Jamaican news outlets, performs sentiment analysis, and surfaces topic trends over time — revealing how different outlets frame stories around crime, politics, tourism, and the economy.
 
