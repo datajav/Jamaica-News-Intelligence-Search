@@ -99,3 +99,57 @@ def get_all_articles():
     conn.close()
     return [dict(row) for row in rows]
 
+#New function added on Day 4 
+def add_topic_column():
+    """Add topic column if it doesn't exist yet."""
+    conn = get_connection()
+    try:
+        conn.execute("ALTER TABLE articles ADD COLUMN topic TEXT")
+        conn.commit()
+        print("✅ Topic column added.")
+    except sqlite3.OperationalError:
+        print("Topic column already exists — skipping.")
+    finally:
+        conn.close()
+
+def save_topic(article_id, topic):
+    conn = get_connection()
+    conn.execute("""
+        UPDATE articles
+        SET topic = ?
+        WHERE id = ?
+    """, (topic, article_id))
+    conn.commit()
+    conn.close()
+
+def get_untopicked_articles():
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT * FROM articles
+        WHERE topic IS NULL
+        ORDER BY scraped_at ASC
+    """).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def get_stats():
+    conn = get_connection()
+    total = conn.execute("SELECT COUNT(*) FROM articles").fetchone()[0]
+    scored = conn.execute(
+        "SELECT COUNT(*) FROM articles WHERE sentiment_label IS NOT NULL"
+    ).fetchone()[0]
+    topicked = conn.execute(
+        "SELECT COUNT(*) FROM articles WHERE topic IS NOT NULL"
+    ).fetchone()[0]
+
+    print(f"\n📊 Database stats")
+    print(f"   Total articles : {total}")
+    print(f"   Scored         : {scored}")
+    print(f"   With topics    : {topicked}")
+    conn.close()
+
+if __name__ == "__main__":
+    init_db()
+    add_topic_column()
+    get_stats()
+

@@ -18,6 +18,14 @@ df = pd.DataFrame(articles)
 df["scraped_at"] = pd.to_datetime(df["scraped_at"])
 df = df.dropna(subset=["sentiment_label"])
 
+#Wiring the topics filter
+
+topics = ["All"] + sorted(df["topic"].dropna().unique().tolist())
+selected_topic = st.selectbox("Filter by Topic", topics)
+
+if selected_topic != "All":
+    df = df[df["topic"] == selected_topic]
+
 #A sentiment breakdown chart that shows the distribution of sentiment labels in the dataset
 st.subheader("Overall Sentiment Breakdown")
 
