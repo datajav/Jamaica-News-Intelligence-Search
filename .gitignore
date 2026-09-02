@@ -1,1 +1,8 @@
 run.bat
+news.db
+articles.json
+articles_with_sentiment.json
+__pycache__/
+*.pyc
+.env
+venv/

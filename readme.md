@@ -1,6 +1,6 @@
-# Jamaican News Sentiment Analyzer
+# 📰 Jamaican News Sentiment Analyzer
 
-A natural language processing pipeline that scrapes articles from major Jamaican news outlets, performs sentiment analysis, and surfaces topic trends over time — revealing how different outlets frame stories around crime, politics, tourism, and the economy.
+A natural language processing pipeline that scrapes articles from major Jamaican news outlets, performs sentiment analysis, and models topics — revealing how different outlets frame stories around crime, politics, tourism, and the economy over time.
 
 **Data sources:** Jamaica Gleaner · Jamaica Observer · Nationwide News Network
 
@@ -8,11 +8,10 @@ A natural language processing pipeline that scrapes articles from major Jamaican
 
 ## Features
 
-- **Automated scraping** — daily article collection with scheduling
-- **Sentiment analysis** — transformer-based scoring per article and outlet
-- **Topic modeling** — unsupervised discovery of recurring themes using BERTopic
-- **Named entity recognition** — tracks politicians, places, and organizations
-- **Interactive dashboard** — sentiment trends, topic heatmaps, and outlet comparisons via Streamlit
+- **Automated scraping** — daily article collection from 3 Jamaican outlets with SHA256 deduplication
+- **Sentiment analysis** — transformer-based scoring using RoBERTa, writing results back to a local SQLite database
+- **Topic modeling** — unsupervised topic discovery using BERTopic with sklearn's HDBSCAN
+- **Interactive dashboard** — sentiment trends, topic frequency, outlet comparisons, and a filterable articles table
 
 ---
 
@@ -20,10 +19,10 @@ A natural language processing pipeline that scrapes articles from major Jamaican
 
 | Layer | Tools |
 |---|---|
-| Scraping | `requests`, `BeautifulSoup4`, `schedule` |
-| NLP | `spaCy`, `HuggingFace Transformers`, `BERTopic` |
-| Sentiment model | `cardiffnlp/twitter-roberta-base-sentiment` |
-| Storage | `SQLite` (dev) / `PostgreSQL` (production) |
+| Scraping | `requests`, `BeautifulSoup4` |
+| Sentiment model | `cardiffnlp/twitter-roberta-base-sentiment-latest` via HuggingFace |
+| Topic modeling | `BERTopic`, `sklearn HDBSCAN`, `sentence-transformers`, `umap-learn` |
+| Storage | `SQLite` (Python built-in `sqlite3`) |
 | Dashboard | `Streamlit`, `Plotly` |
 
 ---
@@ -31,26 +30,14 @@ A natural language processing pipeline that scrapes articles from major Jamaican
 ## Project Structure
 
 ```
-jamaican-news-sentiment/
-├── scraper/
-│   ├── gleaner.py          # Gleaner-specific scraper
-│   ├── observer.py         # Observer-specific scraper
-│   ├── nationwide.py       # Nationwide News Network scraper
-│   └── base.py             # Shared scraping logic
-├── pipeline/
-│   ├── cleaner.py          # Text preprocessing with spaCy
-│   ├── sentiment.py        # HuggingFace sentiment scoring
-│   ├── topics.py           # BERTopic topic modeling
-│   └── entities.py         # NER tagging
-├── db/
-│   ├── models.py           # Database schema
-│   └── db.py               # Read/write helpers
-├── dashboard/
-│   └── app.py              # Streamlit dashboard
-├── data/                   # Local SQLite database (gitignored)
-├── notebooks/              # Exploratory analysis
-├── requirements.txt
-├── .env.example
+Jamaican-News-Sentiment-Analyzer/
+├── scraper.py          # Scrapes Gleaner, Observer, Nationwide → saves to news.db
+├── sentiment.py        # Scores unscored articles → writes labels + scores to news.db
+├── topics.py           # Runs BERTopic on unassigned articles → writes topics to news.db
+├── db.py               # All database reads, writes, and schema management
+├── app.py              # Streamlit dashboard
+├── run.bat             # One-click dashboard launcher (Windows)
+├── news.db             # SQLite database (gitignored)
 └── README.md
 ```
 
@@ -60,70 +47,59 @@ jamaican-news-sentiment/
 
 ### Prerequisites
 
-- Python 3.9+
+- Python 3.11+
 - pip
 
 ### Installation
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/jamaican-news-sentiment.git
-cd jamaican-news-sentiment
-
-# Create a virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+git clone https://github.com/your-username/Jamaican-News-Sentiment-Analyzer.git
+cd Jamaican-News-Sentiment-Analyzer
 
 # Install dependencies
-pip install -r requirements.txt
-
-# Download spaCy model
-python -m spacy download en_core_web_sm
-```
-
-### Environment setup
-
-```bash
-cp .env.example .env
-# Edit .env with your config (DB path, scrape interval, etc.)
+pip install requests beautifulsoup4 streamlit plotly pandas bertopic sentence-transformers umap-learn scikit-learn transformers torch
 ```
 
 ---
 
 ## Usage
 
-### Run the scraper (one-time)
+### Daily pipeline
+
+Run these three commands each day to collect and process new articles:
 
 ```bash
-python scraper/run.py --source all
-```
+# 1. Scrape new articles from all 3 outlets
+python scraper.py
 
-### Run the scraper on a schedule
+# 2. Score any unscored articles with sentiment analysis
+python sentiment.py
 
-```bash
-python scraper/scheduler.py  # Runs daily by default
-```
-
-### Process articles through the NLP pipeline
-
-```bash
-python pipeline/run.py --batch 100
+# 3. Assign topics to any unassigned articles
+python topics.py
 ```
 
 ### Launch the dashboard
 
+**Windows — double-click `run.bat`**
+
+Or from the terminal:
+
 ```bash
-streamlit run dashboard/app.py
+python -m streamlit run app.py
 ```
 
 ---
 
 ## Dashboard Views
 
-- **Sentiment over time** — rolling average sentiment per outlet, filterable by topic
-- **Topic heatmap** — which themes dominated each week and in which outlet
-- **Outlet comparison** — side-by-side framing of the same story across Gleaner, Observer, and Nationwide
-- **Entity spotlight** — search a politician, place, or organization and view their sentiment arc
+- **Topic filter** — dropdown to filter all charts by discovered topic cluster
+- **Topic frequency** — bar chart showing article volume per topic
+- **Overall sentiment breakdown** — pie chart of positive / neutral / negative distribution
+- **Sentiment by source** — grouped bar chart comparing outlets side by side
+- **Sentiment over time** — line chart showing how sentiment shifts across days
+- **Recent articles** — scrollable table of headlines with sentiment labels and confidence scores
 
 ---
 
@@ -131,35 +107,38 @@ streamlit run dashboard/app.py
 
 ```
 articles
-├── id             TEXT  PRIMARY KEY
-├── source         TEXT  (gleaner | observer | nationwide)
-├── headline       TEXT
-├── body           TEXT
-├── url            TEXT
-├── published_at   TEXT
-├── category       TEXT
-├── sentiment_label TEXT  (positive | neutral | negative)
-├── sentiment_score REAL
-├── topics         TEXT  (JSON array)
-└── entities       TEXT  (JSON array)
+├── id              TEXT  PRIMARY KEY    — SHA256 hash of URL (deduplication key)
+├── source          TEXT                 — gleaner | observer | nationwide
+├── headline        TEXT
+├── body            TEXT
+├── url             TEXT  UNIQUE
+├── scraped_at      TEXT                 — ISO timestamp
+├── sentiment_label TEXT                 — positive | neutral | negative
+├── sentiment_score REAL                 — model confidence (0.0 – 1.0)
+├── scored_at       TEXT                 — ISO timestamp, NULL until scored
+└── topic           TEXT                 — BERTopic cluster label, NULL until assigned
 ```
+
+---
+
+## How deduplication works
+
+Each article is assigned an ID generated by hashing its URL with SHA256. When the scraper runs daily, any URL already in the database raises an `IntegrityError` and is silently skipped — so re-running never creates duplicate rows.
 
 ---
 
 ## Roadmap
 
-- [x] Add Nationwide News Network as a source
-- [ ] Add CVM TV as a source
+- [x] Scraper — Gleaner, Observer, Nationwide News Network
+- [x] SQLite persistence with SHA256 deduplication
+- [x] Sentiment analysis pipeline (RoBERTa)
+- [x] BERTopic topic modeling
+- [x] Streamlit dashboard with topic filter
+- [ ] Human-readable topic labels (crime, economy, health, etc.)
+- [ ] Named entity recognition — track politicians and places over time
+- [ ] Deployment on Streamlit Cloud
+- [ ] Add CVM TV as a fourth source
 - [ ] Patois-aware sentiment fine-tuning
-- [ ] Weekly email digest of top trending topics
-- [ ] Public deployment on Streamlit Cloud
-- [ ] Twitter/X integration for social sentiment comparison
-
----
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you'd like to change.
 
 ---
 

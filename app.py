@@ -26,6 +26,21 @@ selected_topic = st.selectbox("Filter by Topic", topics)
 if selected_topic != "All":
     df = df[df["topic"] == selected_topic]
 
+#highlighting the frequency of each topic in the dataset
+st.subheader("Topic Frequency")
+
+topic_counts = df["topic"].value_counts().reset_index()
+topic_counts.columns = ["topic", "count"]
+
+fig0 = px.bar(
+    topic_counts,
+    x="topic",
+    y="count",
+    color="topic"
+)
+
+st.plotly_chart(fig0, width='stretch')
+
 #A sentiment breakdown chart that shows the distribution of sentiment labels in the dataset
 st.subheader("Overall Sentiment Breakdown")
 

@@ -2,6 +2,7 @@ import os
 from bertopic import BERTopic
 from sklearn.cluster import HDBSCAN
 from db import get_untopicked_articles, save_topic, add_topic_column
+from umap import UMAP
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -18,23 +19,31 @@ if __name__ == "__main__":
 
     docs = [a["headline"] + ". " + a["body"][:500] for a in articles]
 
-    hdbscan_model = HDBSCAN(
-        min_cluster_size=2,
-        min_samples=1
-    )
+    umap_model = UMAP(
+    n_neighbors=min(len(docs) - 1, 5),
+    n_components=2,
+    min_dist=0.0,
+    random_state=42
+)
 
-    topic_model = BERTopic(
-        language="english",
-        calculate_probabilities=False,
-        hdbscan_model=hdbscan_model,
-        verbose=True
-    )
+hdbscan_model = HDBSCAN(
+    min_cluster_size=2,
+    min_samples=1
+)
 
-    topics, _ = topic_model.fit_transform(docs)
+topic_model = BERTopic(
+    language="english",
+    calculate_probabilities=False,
+    umap_model=umap_model,
+    hdbscan_model=hdbscan_model,
+    verbose=True
+)
 
-    for article, topic_num in zip(articles, topics):
+topics, _ = topic_model.fit_transform(docs)
+
+for article, topic_num in zip(articles, topics):
         topic_label = f"topic_{topic_num}"
         save_topic(article["id"], topic_label)
         print(f"  [{topic_label}] {article['headline'][:70]}")
 
-    print(f"\n✅ Topics assigned to {len(articles)} articles.")
+print(f"\n✅ Topics assigned to {len(articles)} articles.")
