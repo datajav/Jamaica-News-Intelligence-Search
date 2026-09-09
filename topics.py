@@ -40,6 +40,7 @@ topic_model = BERTopic(
 )
 
 topics, _ = topic_model.fit_transform(docs)
+print(topic_model.get_topic_info())
 
 for article, topic_num in zip(articles, topics):
         topic_label = f"topic_{topic_num}"
