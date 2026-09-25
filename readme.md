@@ -1,17 +1,30 @@
-# 📰 Jamaican News Sentiment Analyzer
+# 📰 Jamaica News Intelligence Search
 
-A natural language processing pipeline that scrapes articles from major Jamaican news outlets, performs sentiment analysis, and models topics — revealing how different outlets frame stories around crime, politics, tourism, and the economy over time.
+A semantic search engine over Jamaican news and institutional publications — find articles, reports, and press releases by meaning, not just keywords. Built for researchers, students, journalists, and policy analysts.
 
-**Data sources:** Jamaica Gleaner · Jamaica Observer · Nationwide News Network
+**News sources:** Jamaica Gleaner · Jamaica Observer · Jamaica Information Service
+
+**Institutional sources:** Planning Institute of Jamaica (PIOJ) · Bank of Jamaica (BOJ) · Statistical Institute of Jamaica (STATIN)
+
+---
+
+## What it does
+
+Traditional keyword search returns articles that contain your exact words. This engine understands *meaning* — search for "government response to flooding in western Jamaica" and it will surface relevant articles even if they use different words like "disaster relief", "parish council", or "St. James".
+
+Under the hood it converts every article into a semantic vector using a sentence transformer model, stores those vectors, and at search time finds the articles whose meaning is closest to your query using FAISS similarity search.
 
 ---
 
 ## Features
 
-- **Automated scraping** — daily article collection from 3 Jamaican outlets with SHA256 deduplication
-- **Sentiment analysis** — transformer-based scoring using RoBERTa, writing results back to a local SQLite database
-- **Topic modeling** — unsupervised topic discovery using BERTopic with sklearn's HDBSCAN
-- **Interactive dashboard** — sentiment trends, topic frequency, outlet comparisons, and a filterable articles table
+- **Semantic search** — find articles by meaning using sentence transformers and FAISS
+- **Multi-source indexing** — news outlets and official government publications in one place
+- **Sentiment context** — every result shows whether the coverage is positive, neutral, or negative
+- **Topic context** — BERTopic-assigned topic labels appear alongside each result
+- **Sidebar filters** — narrow results by source or sentiment label
+- **Deduplication** — SHA256 URL hashing ensures no article appears twice
+- **Daily pipeline** — scrape, score, assign topics, and embed new articles each day
 
 ---
 
@@ -22,8 +35,10 @@ A natural language processing pipeline that scrapes articles from major Jamaican
 | Scraping | `requests`, `BeautifulSoup4` |
 | Sentiment model | `cardiffnlp/twitter-roberta-base-sentiment-latest` via HuggingFace |
 | Topic modeling | `BERTopic`, `sklearn HDBSCAN`, `sentence-transformers`, `umap-learn` |
+| Embeddings | `all-MiniLM-L6-v2` via `sentence-transformers` |
+| Vector search | `FAISS` (faiss-cpu) |
 | Storage | `SQLite` (Python built-in `sqlite3`) |
-| Dashboard | `Streamlit`, `Plotly` |
+| Dashboard | `Streamlit`, custom CSS |
 
 ---
 
@@ -31,13 +46,15 @@ A natural language processing pipeline that scrapes articles from major Jamaican
 
 ```
 Jamaican-News-Sentiment-Analyzer/
-├── scraper.py          # Scrapes Gleaner, Observer, Nationwide → saves to news.db
-├── sentiment.py        # Scores unscored articles → writes labels + scores to news.db
-├── topics.py           # Runs BERTopic on unassigned articles → writes topics to news.db
-├── db.py               # All database reads, writes, and schema management
-├── app.py              # Streamlit dashboard
-├── run.bat             # One-click dashboard launcher (Windows)
-├── news.db             # SQLite database (gitignored)
+├── scraper.py      # Scrapes all 6 sources → saves to news.db
+├── sentiment.py    # Scores unscored articles → writes labels + scores to news.db
+├── topics.py       # Runs BERTopic on unassigned articles → writes topic labels to news.db
+├── embed.py        # Generates sentence vectors → saves to embeddings table in news.db
+├── search.py       # FAISS-powered semantic search engine
+├── db.py           # All database reads, writes, and schema management
+├── app.py          # Streamlit search interface
+├── run.bat         # One-click dashboard launcher (Windows)
+├── news.db         # SQLite database (gitignored)
 └── README.md
 ```
 
@@ -58,7 +75,8 @@ git clone https://github.com/your-username/Jamaican-News-Sentiment-Analyzer.git
 cd Jamaican-News-Sentiment-Analyzer
 
 # Install dependencies
-pip install requests beautifulsoup4 streamlit plotly pandas bertopic sentence-transformers umap-learn scikit-learn transformers torch
+pip install requests beautifulsoup4 streamlit plotly pandas bertopic \
+    sentence-transformers umap-learn scikit-learn transformers torch faiss-cpu
 ```
 
 ---
@@ -67,20 +85,23 @@ pip install requests beautifulsoup4 streamlit plotly pandas bertopic sentence-tr
 
 ### Daily pipeline
 
-Run these three commands each day to collect and process new articles:
+Run these four commands each day to collect and process new content:
 
 ```bash
-# 1. Scrape new articles from all 3 outlets
+# 1. Scrape new articles from all 6 sources
 python scraper.py
 
 # 2. Score any unscored articles with sentiment analysis
 python sentiment.py
 
-# 3. Assign topics to any unassigned articles
+# 3. Assign topic labels to any unassigned articles
 python topics.py
+
+# 4. Generate semantic vectors for new articles
+python embed.py
 ```
 
-### Launch the dashboard
+### Launch the search interface
 
 **Windows — double-click `run.bat`**
 
@@ -92,14 +113,27 @@ python -m streamlit run app.py
 
 ---
 
-## Dashboard Views
+## How it works
 
-- **Topic filter** — dropdown to filter all charts by discovered topic cluster
-- **Topic frequency** — bar chart showing article volume per topic
-- **Overall sentiment breakdown** — pie chart of positive / neutral / negative distribution
-- **Sentiment by source** — grouped bar chart comparing outlets side by side
-- **Sentiment over time** — line chart showing how sentiment shifts across days
-- **Recent articles** — scrollable table of headlines with sentiment labels and confidence scores
+```
+Query: "economic impact of drought on Jamaican farmers"
+         │
+         ▼
+  Sentence Transformer
+  (all-MiniLM-L6-v2)
+         │
+         ▼
+   Query vector [0.23, -0.41, 0.87 ...]
+         │
+         ▼
+  FAISS similarity search
+  against 500+ article vectors
+         │
+         ▼
+  Top 10 most semantically
+  similar articles ranked
+  by relevance score
+```
 
 ---
 
@@ -108,7 +142,7 @@ python -m streamlit run app.py
 ```
 articles
 ├── id              TEXT  PRIMARY KEY    — SHA256 hash of URL (deduplication key)
-├── source          TEXT                 — gleaner | observer | nationwide
+├── source          TEXT                 — gleaner | observer | nationwide | pioj | boj | statin
 ├── headline        TEXT
 ├── body            TEXT
 ├── url             TEXT  UNIQUE
@@ -116,29 +150,29 @@ articles
 ├── sentiment_label TEXT                 — positive | neutral | negative
 ├── sentiment_score REAL                 — model confidence (0.0 – 1.0)
 ├── scored_at       TEXT                 — ISO timestamp, NULL until scored
-└── topic           TEXT                 — BERTopic cluster label, NULL until assigned
+└── topic           TEXT                 — BERTopic keyword label, NULL until assigned
+
+embeddings
+├── article_id      TEXT  PRIMARY KEY    — references articles.id
+└── vector          BLOB                 — serialized float32 numpy array
 ```
-
----
-
-## How deduplication works
-
-Each article is assigned an ID generated by hashing its URL with SHA256. When the scraper runs daily, any URL already in the database raises an `IntegrityError` and is silently skipped — so re-running never creates duplicate rows.
 
 ---
 
 ## Roadmap
 
 - [x] Scraper — Gleaner, Observer, Nationwide News Network
+- [x] Institutional scraper — PIOJ, BOJ, STATIN
 - [x] SQLite persistence with SHA256 deduplication
 - [x] Sentiment analysis pipeline (RoBERTa)
-- [x] BERTopic topic modeling
-- [x] Streamlit dashboard with topic filter
-- [ ] Human-readable topic labels (crime, economy, health, etc.)
+- [x] BERTopic topic modeling with human-readable labels
+- [x] Sentence embeddings (all-MiniLM-L6-v2)
+- [x] FAISS semantic search engine
+- [x] Streamlit search interface with filters
+- [ ] Academic sources — UWI Mona Institutional Repository, Caribbean Quarterly
 - [ ] Named entity recognition — track politicians and places over time
 - [ ] Deployment on Streamlit Cloud
-- [ ] Add CVM TV as a fourth source
-- [ ] Patois-aware sentiment fine-tuning
+- [ ] CVM TV as an additional news source
 
 ---
 
@@ -148,4 +182,4 @@ Each article is assigned an ID generated by hashing its URL with SHA256. When th
 
 ---
 
-> Built in Jamaica 🇯🇲 — tracking the stories that shape the island.
+> Built in Jamaica 🇯🇲 — making Jamaican knowledge searchable.
