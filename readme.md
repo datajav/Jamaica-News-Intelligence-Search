@@ -10,7 +10,7 @@ A semantic search engine over Jamaican news and institutional publications — f
 
 ## What it does
 
-Traditional keyword search returns articles that contain your exact words. This engine understands *meaning* — search for "government response to flooding in western Jamaica" and it will surface relevant articles even if they use different words like "disaster relief", "parish council", or "St. James".
+Traditional keyword search returns articles that contain your exact words. This engine understands *meaning* then searches for "government response to flooding in western Jamaica" and it will surface relevant articles even if they use different words like "disaster relief", "parish council", or "St. James".
 
 Under the hood it converts every article into a semantic vector using a sentence transformer model, stores those vectors, and at search time finds the articles whose meaning is closest to your query using FAISS similarity search.
 
