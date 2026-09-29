@@ -182,4 +182,4 @@ embeddings
 
 ---
 
-> Built in Jamaica, making Jamaican knowledge searchable.
+> Built in Jamaica 🇯🇲 — making Jamaican knowledge searchable.
