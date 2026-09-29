@@ -169,7 +169,7 @@ embeddings
 - [x] Sentence embeddings (all-MiniLM-L6-v2)
 - [x] FAISS semantic search engine
 - [x] Streamlit search interface with filters
-- [ ] Academic sources — UWI Mona Institutional Repository, Caribbean Quarterly
+- [x] Academic sources — UWI Mona Institutional Repository, Caribbean Quarterly
 - [ ] Named entity recognition — track politicians and places over time
 - [ ] Deployment on Streamlit Cloud
 - [ ] CVM TV as an additional news source
