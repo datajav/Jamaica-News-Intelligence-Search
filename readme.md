@@ -1,6 +1,6 @@
 # 📰 Jamaica News Intelligence Search
 
-A semantic search engine over Jamaican news and institutional publications — find articles, reports, and press releases by meaning, not just keywords. Built for researchers, students, journalists, and policy analysts.
+A semantic search engine over Jamaican news and institutional publications; find articles, reports, and press releases by meaning, not just keywords. Built for researchers, students, journalists, and policy analysts.
 
 **News sources:** Jamaica Gleaner · Jamaica Observer · Jamaica Information Service
 
@@ -182,4 +182,4 @@ embeddings
 
 ---
 
-> Built in Jamaica 🇯🇲 — making Jamaican knowledge searchable.
+> Built in Jamaica, making Jamaican knowledge searchable.

@@ -38,6 +38,7 @@ def get_connection():
 
 #Creates the table that doesn't exist
 def init_db():
+    """Create tables if they don't exist yet."""
     conn = get_connection()
     conn.execute("""
         CREATE TABLE IF NOT EXISTS articles (
@@ -49,7 +50,14 @@ def init_db():
             scraped_at      TEXT,
             sentiment_label TEXT,
             sentiment_score REAL,
-            scored_at       TEXT
+            scored_at       TEXT,
+            topic           TEXT
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS embeddings (
+            article_id TEXT PRIMARY KEY,
+            vector     BLOB
         )
     """)
     conn.commit()
@@ -152,4 +160,36 @@ if __name__ == "__main__":
     init_db()
     add_topic_column()
     get_stats()
+
+def save_embedding(article_id, embedding_bytes):
+    """Store a serialized embedding vector for an article."""
+    conn = get_connection()
+    try:
+        conn.execute("""
+            INSERT OR IGNORE INTO embeddings (article_id, vector)
+            VALUES (?, ?)
+        """, (article_id, embedding_bytes))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_unembedded_articles():
+    """Return articles that don't have a vector yet."""
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT * FROM articles
+        WHERE id NOT IN (SELECT article_id FROM embeddings)
+        ORDER BY scraped_at ASC
+    """).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def get_all_embeddings():
+    """Return all stored vectors alongside their article id."""
+    conn = get_connection()
+    rows = conn.execute("SELECT article_id, vector FROM embeddings").fetchall()
+    conn.close()
+    return [(row["article_id"], row["vector"]) for row in rows]
 

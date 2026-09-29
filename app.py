@@ -1,121 +1,163 @@
 import streamlit as st
-import plotly.express as px
 import pandas as pd
+from search import search
 from db import get_all_articles
 
-# Title for the Streamlit app
-st.set_page_config(page_title="Jamaican News Sentiment", layout="wide")
-st.title("📰 Jamaican News Sentiment Analyzer")
+# ── Page config ───────────────────────────────────────────────────────────────
 
-#This function retrieves all articles from the database and displays them in a table
-articles = get_all_articles()
-
-if not articles:
-    st.warning("No articles found. Run scraper.py and sentiment.py first.")
-    st.stop()
-
-df = pd.DataFrame(articles)
-df["scraped_at"] = pd.to_datetime(df["scraped_at"])
-df = df.dropna(subset=["sentiment_label"])
-
-#Wiring the topics filter
-
-topics = ["All"] + sorted(df["topic"].dropna().unique().tolist())
-selected_topic = st.selectbox("Filter by Topic", topics)
-
-if selected_topic != "All":
-    df = df[df["topic"] == selected_topic]
-
-#highlighting the frequency of each topic in the dataset
-st.subheader("Topic Frequency")
-
-topic_counts = df["topic"].value_counts().reset_index()
-topic_counts.columns = ["topic", "count"]
-
-fig0 = px.bar(
-    topic_counts,
-    x="topic",
-    y="count",
-    color="topic"
+st.set_page_config(
+    page_title="Jamaica News Search",
+    page_icon="📰",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-st.plotly_chart(fig0, width='stretch')
+# ── Styling ───────────────────────────────────────────────────────────────────
 
-#A sentiment breakdown chart that shows the distribution of sentiment labels in the dataset
-st.subheader("Overall Sentiment Breakdown")
+st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Serif+4:wght@400;600&display=swap');
 
-sentiment_counts = df["sentiment_label"].value_counts().reset_index()
-sentiment_counts.columns = ["sentiment", "count"]
+        [data-testid="stAppViewContainer"] { background-color: #f5f3ee; }
+        [data-testid="stHeader"]           { background-color: #f5f3ee; }
+        [data-testid="stSidebar"]          { background-color: #ede9e0; border-right: 1px solid #ccc8be; }
+        [data-testid="stSidebar"] *        { color: #4a4843 !important; }
 
-fig = px.pie(
-    sentiment_counts,
-    names="sentiment",
-    values="count",
-    color="sentiment",
-    color_discrete_map={
-        "positive": "#2ecc71",
-        "neutral": "#f1c40f",
-        "negative": "#e74c3c"
-    }
+        html, body, [class*="css"] {
+            font-family: 'Source Serif 4', Georgia, serif;
+            color: #1a1916;
+        }
+        h1, h2, h3 {
+            font-family: 'Playfair Display', Georgia, serif;
+            color: #1a3a5c !important;
+        }
+        .result-card {
+            background-color: #ffffff;
+            border: 1px solid #ccc8be;
+            border-left: 4px solid #1a3a5c;
+            border-radius: 4px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+        }
+        .result-headline {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.1rem;
+            color: #1a3a5c;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+        .result-meta {
+            font-size: 0.85rem;
+            color: #888680;
+            margin-bottom: 0.4rem;
+        }
+        .result-relevance {
+            font-size: 0.85rem;
+            color: #4a4843;
+        }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.78rem;
+            margin-right: 4px;
+        }
+        .tag-positive  { background-color: #e8edf3; color: #1a3a5c; }
+        .tag-neutral   { background-color: #f0efed; color: #4a4843; }
+        .tag-negative  { background-color: #f3ebe8; color: #7a3b1e; }
+        .tag-topic     { background-color: #ede9e0; color: #4a4843; }
+    </style>
+""", unsafe_allow_html=True)
+
+# ── Sidebar filters ───────────────────────────────────────────────────────────
+
+with st.sidebar:
+    st.header("Filters")
+
+    all_articles = get_all_articles()
+    df = pd.DataFrame(all_articles)
+
+    sources = ["All"] + sorted(df["source"].dropna().unique().tolist())
+    selected_source = st.selectbox("Source", sources)
+
+    sentiments = ["All", "positive", "neutral", "negative"]
+    selected_sentiment = st.selectbox("Sentiment", sentiments)
+
+    top_k = st.slider("Number of results", min_value=5, max_value=30, value=10)
+
+    st.markdown("---")
+    st.caption(f"📚 {len(df)} articles indexed")
+    st.caption("Sources: Gleaner · Observer · JIS · BOJ · STATIN · PIOJ")
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+st.title("📰 Jamaica News Intelligence Search")
+st.markdown(
+    "<p style='color:#4a4843; font-family:Source Serif 4,Georgia,serif; font-size:1.1rem;'>"
+    "Semantic search across Jamaican news — find articles by meaning, not just keywords.</p>",
+    unsafe_allow_html=True
+)
+st.markdown("<hr style='border:1px solid #ccc8be; margin-bottom:1.5rem;'>", unsafe_allow_html=True)
+
+query = st.text_input(
+    "",
+    placeholder="Lets get it started, search here...",
+    label_visibility="collapsed"
 )
 
-# A pie chart that shows the distribution of sentiment labels in the dataset
-st.plotly_chart(fig, use_container_width=True)
+if st.button("🔍 Search", use_container_width=True) or query:
+    if not query.strip():
+        st.info("Enter a search query above.")
+    else:
+        with st.spinner("Searching..."):
+            results = search(query, top_k=top_k * 2)
 
-st.subheader("Sentiment by Source")
+            # Deduplicate by URL
+            seen_urls = set()
+            unique_results = []
+            for r in results:
+                if r["url"] not in seen_urls:
+                    seen_urls.add(r["url"])
+                    unique_results.append(r)
 
-source_sentiment = df.groupby(["source", "sentiment_label"]).size().reset_index(name="count")
+            # Apply sidebar filters
+            if selected_source != "All":
+                unique_results = [r for r in unique_results if r["source"] == selected_source]
+            if selected_sentiment != "All":
+                unique_results = [r for r in unique_results if r["sentiment_label"] == selected_sentiment]
 
-fig2 = px.bar(
-    source_sentiment,
-    x="source",
-    y="count",
-    color="sentiment_label",
-    barmode="group",
-    color_discrete_map={
-        "positive": "#2ecc71",
-        "neutral": "#f1c40f",
-        "negative": "#e74c3c"
-    }
-)
+            unique_results = unique_results[:top_k]
 
-st.plotly_chart(fig2, use_container_width=True)
+        if not unique_results:
+            st.warning("No results found. Try a different query or adjust the filters.")
+        else:
+            st.markdown(f"**{len(unique_results)} results** for *{query}*")
+            st.markdown("<br>", unsafe_allow_html=True)
 
-#Adds a table to the Streamlit app that displays the recent articles along with their sentiment labels and confidence scores
+            for r in unique_results:
+                sentiment = r.get("sentiment_label", "neutral")
+                topic = r.get("topic", "")
+                date = r.get("scraped_at", "")[:10]
+                source = r.get("source", "").upper()
+                relevance = r.get("relevance", 0)
+                headline = r.get("headline", "")
+                url = r.get("url", "#")
 
-st.subheader("Recent Articles")
+                tag_class = f"tag-{sentiment}"
+                sentiment_emoji = {"positive": "🔵", "neutral": "⚪", "negative": "🟤"}.get(sentiment, "")
 
-table = df[["scraped_at", "source", "headline", "sentiment_label", "sentiment_score"]].copy()
-table["scraped_at"] = table["scraped_at"].dt.strftime("%Y-%m-%d %H:%M")
-table = table.rename(columns={
-    "scraped_at": "Date",
-    "source": "Source",
-    "headline": "Headline",
-    "sentiment_label": "Sentiment",
-    "sentiment_score": "Confidence"
-})
-
-st.dataframe(table, width='stretch')
-
-#
-
-st.subheader("Sentiment Over Time")
-
-df["date"] = df["scraped_at"].dt.date
-
-trend = df.groupby(["date", "sentiment_label"]).size().reset_index(name="count")
-
-fig3 = px.line(
-    trend,
-    x="date",
-    y="count",
-    color="sentiment_label",
-    markers=True,
-    color_discrete_map={
-        "positive": "#2ecc71",
-        "neutral": "#f1c40f",
-        "negative": "#e74c3c"
-    }
-)
-
-st.plotly_chart(fig3, width='stretch')
+                st.markdown(f"""
+                    <div class="result-card">
+                        <div class="result-headline">
+                            <a href="{url}" target="_blank" style="color:#1a3a5c; text-decoration:none;">{headline}</a>
+                        </div>
+                        <div class="result-meta">{source} · {date}</div>
+                        <div>
+                            <span class="tag {tag_class}">{sentiment_emoji} {sentiment}</span>
+                            <span class="tag tag-topic">🏷 {topic}</span>
+                        </div>
+                        <div class="result-relevance" style="margin-top:0.5rem;">
+                            Relevance: {relevance}%
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)

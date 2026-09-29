@@ -1,11 +1,10 @@
 import os
 import requests
 from bs4 import BeautifulSoup
-import json
 from datetime import datetime
 from db import init_db, insert_article
+from scrape_uwi import scrape_uwispace
 
-# Always resolve paths relative to this script's folder
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 HEADERS = {
@@ -16,10 +15,10 @@ HEADERS = {
     )
 }
 
-TIMEOUT = 20  # seconds — Jamaican sites can be slow
+TIMEOUT = 20
 
 
-# Helper function 
+# ── Helper ────────────────────────────────────────────────────────────────────
 
 def fetch_homepage(url, label):
     """Safely fetch a homepage. Returns BeautifulSoup or None on failure."""
@@ -38,15 +37,15 @@ def fetch_homepage(url, label):
     return None
 
 
-#  Scrapers for the three news sites; each returns a list of articles (dicts with headline, body, url, source, scraped_at)
+# ── News scrapers ─────────────────────────────────────────────────────────────
 
-def scrape_nationwide(max_articles=10):
-    """Scrape Nationwide News Network Jamaica (nationwideradiojm.com)."""
-    base_url = "https://nationwideradiojm.com"
+def scrape_jis(max_articles=10):
+    """Scrape Jamaica Information Service (https://jis.gov.jm/)."""
+    base_url = "https://jis.gov.jm/"
     articles = []
 
-    print(f"[Nationwide] Fetching homepage...")
-    soup = fetch_homepage(base_url, "Nationwide")
+    print(f"[JIS] Fetching homepage...")
+    soup = fetch_homepage(base_url, "JIS")
     if not soup:
         return []
 
@@ -60,9 +59,9 @@ def scrape_nationwide(max_articles=10):
         if len(links) >= max_articles:
             break
 
-    print(f"[Nationwide] Found {len(links)} article links. Fetching content...")
+    print(f"[JIS] Found {len(links)} article links. Fetching content...")
     for url in links:
-        article = scrape_article(url, source="nationwide")
+        article = scrape_article(url, source="jis")
         if article:
             articles.append(article)
             print(f"  ✓ {article['headline'][:70]}...")
@@ -130,7 +129,99 @@ def scrape_observer(max_articles=10):
     return articles
 
 
-#  Article parser 
+# ── Institutional scrapers ────────────────────────────────────────────────────
+
+def scrape_pioj(max_articles=10):
+    """Scrape Planning Institute of Jamaica (pioj.gov.jm)."""
+    base_url = "https://pioj.gov.jm"
+    articles = []
+
+    print(f"[PIOJ] Fetching homepage...")
+    soup = fetch_homepage(base_url, "PIOJ")
+    if not soup:
+        return []
+
+    links = []
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if any(seg in href for seg in ["/news/", "/publications/", "/press-release/", "/reports/"]):
+            full_url = href if href.startswith("http") else base_url + href
+            if full_url not in links and full_url != base_url:
+                links.append(full_url)
+        if len(links) >= max_articles:
+            break
+
+    print(f"[PIOJ] Found {len(links)} links. Fetching content...")
+    for url in links:
+        article = scrape_article(url, source="pioj")
+        if article:
+            articles.append(article)
+            print(f"  ✓ {article['headline'][:70]}...")
+
+    return articles
+
+
+def scrape_boj(max_articles=10):
+    """Scrape Bank of Jamaica (boj.org.jm)."""
+    base_url = "https://boj.org.jm"
+    articles = []
+
+    print(f"[BOJ] Fetching homepage...")
+    soup = fetch_homepage(base_url, "BOJ")
+    if not soup:
+        return []
+
+    links = []
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if any(seg in href for seg in ["/news/", "/press-releases/", "/speeches/", "/publications/"]):
+            full_url = href if href.startswith("http") else base_url + href
+            if full_url not in links and full_url != base_url:
+                links.append(full_url)
+        if len(links) >= max_articles:
+            break
+
+    print(f"[BOJ] Found {len(links)} links. Fetching content...")
+    for url in links:
+        article = scrape_article(url, source="boj")
+        if article:
+            articles.append(article)
+            print(f"  ✓ {article['headline'][:70]}...")
+
+    return articles
+
+
+def scrape_statin(max_articles=10):
+    """Scrape Statistical Institute of Jamaica (statinja.gov.jm)."""
+    base_url = "https://statinja.gov.jm"
+    articles = []
+
+    print(f"[STATIN] Fetching homepage...")
+    soup = fetch_homepage(base_url, "STATIN")
+    if not soup:
+        return []
+
+    links = []
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if any(seg in href for seg in ["/news/", "/press-releases/", "/publications/", "/releases/"]):
+            full_url = href if href.startswith("http") else base_url + href
+            if full_url not in links and full_url != base_url:
+                links.append(full_url)
+        if len(links) >= max_articles:
+            break
+
+    print(f"[STATIN] Found {len(links)} links. Fetching content...")
+    for url in links:
+        article = scrape_article(url, source="statin")
+        if article:
+            articles.append(article)
+            print(f"  ✓ {article['headline'][:70]}...")
+
+    return articles
+
+
+# ── Article parser ────────────────────────────────────────────────────────────
 
 def scrape_article(url, source):
     """Generic article scraper — extracts headline and body text."""
@@ -138,7 +229,6 @@ def scrape_article(url, source):
         resp = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # Headline — try common tags in order of preference
         headline = None
         for tag in ["h1", "h2"]:
             el = soup.find(tag)
@@ -149,7 +239,6 @@ def scrape_article(url, source):
         if not headline:
             return None
 
-        # Body — grab all paragraphs and join
         paragraphs = soup.find_all("p")
         body = " ".join(
             p.get_text(strip=True)
@@ -158,7 +247,7 @@ def scrape_article(url, source):
         )
 
         if len(body) < 100:
-            return None  # Skip pages with no real article content
+            return None
 
         return {
             "source": source,
@@ -173,15 +262,22 @@ def scrape_article(url, source):
         return None
 
 
-#  Runs the functions above to scrape all three sites and save to articles.json
+# ── Run ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     init_db()
 
     all_articles = []
-    all_articles += scrape_nationwide(max_articles=5)
+
+    # News sources
+    all_articles += scrape_jis(max_articles=5)
     all_articles += scrape_gleaner(max_articles=5)
     all_articles += scrape_observer(max_articles=5)
+
+    # Institutional sources
+    all_articles += scrape_pioj(max_articles=5)
+    all_articles += scrape_boj(max_articles=5)
+    all_articles += scrape_statin(max_articles=5)
 
     new_count = 0
     dupe_count = 0
