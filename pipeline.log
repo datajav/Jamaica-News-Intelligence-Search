@@ -1,24 +1,112 @@
-Traceback (most recent call last):
-  File "C:\Users\watso\Github\Jamaican-News-Sentiment-Analyzer\pipeline.py", line 26, in <module>
-    print(f"\U0001f5de  Jamaica News Pipeline � {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\watso\AppData\Local\Python\pythoncore-3.14-64\Lib\encodings\cp1252.py", line 19, in encode
-    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
-           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f5de' in position 0: character maps to <undefined>
-Traceback (most recent call last):
-  File "C:\Users\watso\Github\Jamaican-News-Sentiment-Analyzer\pipeline.py", line 26, in <module>
-    print(f"\U0001f5de  Jamaica News Pipeline � {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\watso\AppData\Local\Python\pythoncore-3.14-64\Lib\encodings\cp1252.py", line 19, in encode
-    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
-           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f5de' in position 0: character maps to <undefined>
-Traceback (most recent call last):
-  File "C:\Users\watso\Github\Jamaican-News-Sentiment-Analyzer\pipeline.py", line 26, in <module>
-    print(f"\U0001f5de  Jamaica News Pipeline � {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\watso\AppData\Local\Python\pythoncore-3.14-64\Lib\encodings\cp1252.py", line 19, in encode
-    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
-           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f5de' in position 0: character maps to <undefined>
+Jamaica News Pipeline — 2026-11-04 19:38
+
+──────────────────────────────────────────────────
+▶ Scraper — 19:38:11
+──────────────────────────────────────────────────
+Database ready at: C:\Users\watso\Github\Jamaican-News-Sentiment-Analyzer\news.db
+[JIS] Fetching homepage...
+[JIS] Found 1 article links. Fetching content...
+  ✓ NewsHome|Page|News...
+[Gleaner] Fetching homepage...
+[Gleaner] Found 5 article links. Fetching content...
+  ✓ World Cup delivers $776m sales bump for Supreme Ventures...
+  ✓ World Cup delivers $776m sales bump for Supreme Ventures...
+  ✓ Opposition erupts as Green moves to shut down Cuba vote censure debate...
+  ✓ Opposition erupts as Green moves to shut down Cuba vote censure debate...
+  ✓ FosRich sees opportunity in rebuild...
+[Observer] Fetching homepage...
+[Observer] Found 4 article links. Fetching content...
+[PIOJ] Fetching homepage...
+[PIOJ] Found 0 links. Fetching content...
+[BOJ] Fetching homepage...
+[BOJ] Found 4 links. Fetching content...
+  ✓ Posts pagination...
+  ✓ Speeches Archive...
+  ✓ Op Ed Articles...
+  ✓ Press Centre...
+[STATIN] Fetching homepage...
+[STATIN] Found 0 links. Fetching content...
+
+✅ Done — 5 new articles saved, 5 duplicates skipped
+✓ Scraper complete
+
+──────────────────────────────────────────────────
+▶ Sentiment — 19:38:45
+──────────────────────────────────────────────────
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading sentiment model (first run downloads ~500MB)...
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 22630.53it/s]
+[transformers] [1mRobertaForSequenceClassification LOAD REPORT[0m from: cardiffnlp/twitter-roberta-base-sentiment-latest
+Key                         | Status     |  | 
+----------------------------+------------+--+-
+roberta.pooler.dense.bias   | UNEXPECTED |  | 
+roberta.pooler.dense.weight | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Model loaded.
+
+Analyzing 5 articles...
+
+🟢 [GLEANER] POSITIVE (0.8507)
+   World Cup delivers $776m sales bump for Supreme Ventures
+
+🟢 [GLEANER] POSITIVE (0.8507)
+   World Cup delivers $776m sales bump for Supreme Ventures
+
+🟡 [GLEANER] NEUTRAL (0.638)
+   Opposition erupts as Green moves to shut down Cuba vote censure debate
+
+🟡 [GLEANER] NEUTRAL (0.638)
+   Opposition erupts as Green moves to shut down Cuba vote censure debate
+
+🟢 [GLEANER] POSITIVE (0.606)
+   FosRich sees opportunity in rebuild
+
+──────────────────────────────────────────────────
+✅ Sentiment scoring complete.
+✓ Sentiment complete
+
+──────────────────────────────────────────────────
+▶ Topics — 19:39:49
+──────────────────────────────────────────────────
+2026-11-04 19:44:17,217 - BERTopic - Embedding - Transforming documents to embeddings.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Topic column already exists — skipping.
+Running BERTopic on 5 articles...
+
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights:  60%|██████    | 62/103 [00:00<00:00, 607.15it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 625.93it/s]
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.15s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.15s/it]
+2026-11-04 19:44:24,464 - BERTopic - Embedding - Completed ✓
+2026-11-04 19:44:24,464 - BERTopic - Dimensionality - Fitting the dimensionality reduction algorithm
+2026-11-04 19:45:33,983 - BERTopic - Dimensionality - Completed ✓
+2026-11-04 19:45:33,984 - BERTopic - Cluster - Start clustering the reduced embeddings
+2026-11-04 19:45:34,030 - BERTopic - Cluster - Completed ✓
+2026-11-04 19:45:34,046 - BERTopic - Representation - Fine-tuning topics using representation models.
+2026-11-04 19:45:34,095 - BERTopic - Representation - Completed ✓
+  [betting_world_ventures] World Cup delivers $776m sales bump for Supreme Ventures
+  [betting_world_ventures] World Cup delivers $776m sales bump for Supreme Ventures
+  [debate_green_opposition] Opposition erupts as Green moves to shut down Cuba vote censure debate
+  [debate_green_opposition] Opposition erupts as Green moves to shut down Cuba vote censure debate
+  [debate_green_opposition] FosRich sees opportunity in rebuild
+
+✅ Topics assigned to 5 articles.
+✓ Topics complete
+
+──────────────────────────────────────────────────
+▶ Embeddings — 19:45:41
+──────────────────────────────────────────────────
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Database ready at: C:\Users\watso\Github\Jamaican-News-Sentiment-Analyzer\news.db
+Embedding 5 articles...
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights:  96%|█████████▌| 99/103 [00:00<00:00, 988.12it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 1000.69it/s]
+  ✓ World Cup delivers $776m sales bump for Supreme Ventures
+  ✓ World Cup delivers $776m sales bump for Supreme Ventures
+  ✓ Opposition erupts as Green moves to shut down Cuba vote censure debate
+  ✓ Opposition erupts as Green moves to shut down Cuba vote censure debate
+  ✓ FosRich sees opportunity in rebuild
+
+✅ Done — 5 articles embedded.
+✓ Embeddings complete
+
+Pipeline complete — 19:46:52
