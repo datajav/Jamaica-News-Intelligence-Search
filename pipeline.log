@@ -110,3 +110,204 @@ Embedding 5 articles...
 ✓ Embeddings complete
 
 Pipeline complete — 19:46:52
+Jamaica News Pipeline — 2026-11-05 10:34
+
+──────────────────────────────────────────────────
+▶ Scraper — 10:34:11
+──────────────────────────────────────────────────
+✗ Scraper failed with exit code 3221225786
+
+Pipeline stopped at Scraper.
+^CJamaica News Pipeline — 2026-11-06 10:17
+
+──────────────────────────────────────────────────
+▶ Scraper — 10:17:06
+──────────────────────────────────────────────────
+Database ready at: C:\Users\watso\Github\Jamaican-News-Sentiment-Analyzer\news.db
+[JIS] Fetching homepage...
+[JIS] Found 1 article links. Fetching content...
+  ✓ NewsHome|Page|News...
+[Gleaner] Fetching homepage...
+[Gleaner] Found 5 article links. Fetching content...
+  ✓ Flow Jamaica’s $16.1b quarterly revenue still trails pre-Melissa level...
+  ✓ Flow Jamaica’s $16.1b quarterly revenue still trails pre-Melissa level...
+  ✓ Fee furore - Craft vendors, mayor oppose proposed 150% market rate inc...
+  ✓ Fee furore - Craft vendors, mayor oppose proposed 150% market rate inc...
+  ✓ ‘Enormous honour’ - Rachel Scott wins second CFDA Womenswear Designer ...
+[Observer] Fetching homepage...
+[Observer] Found 4 article links. Fetching content...
+[PIOJ] Fetching homepage...
+[PIOJ] Found 0 links. Fetching content...
+[BOJ] Fetching homepage...
+[BOJ] Found 5 links. Fetching content...
+  ✓ Posts pagination...
+  ✓ Speeches Archive...
+  ✓ Op Ed Articles...
+  ✓ Press Centre...
+  ✓ Posts pagination...
+[STATIN] Fetching homepage...
+[STATIN] Found 0 links. Fetching content...
+
+✅ Done — 6 new articles saved, 5 duplicates skipped
+✓ Scraper complete
+
+──────────────────────────────────────────────────
+▶ Sentiment — 10:17:46
+──────────────────────────────────────────────────
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading sentiment model (first run downloads ~500MB)...
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 4084.71it/s]
+[transformers] [1mRobertaForSequenceClassification LOAD REPORT[0m from: cardiffnlp/twitter-roberta-base-sentiment-latest
+Key                         | Status     |  | 
+----------------------------+------------+--+-
+roberta.pooler.dense.weight | UNEXPECTED |  | 
+roberta.pooler.dense.bias   | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Model loaded.
+
+Analyzing 6 articles...
+
+🟡 [GLEANER] NEUTRAL (0.6223)
+   Flow Jamaica’s $16.1b quarterly revenue still trails pre-Melissa levels
+
+🟡 [GLEANER] NEUTRAL (0.6223)
+   Flow Jamaica’s $16.1b quarterly revenue still trails pre-Melissa levels
+
+🟡 [GLEANER] NEUTRAL (0.5281)
+   Fee furore - Craft vendors, mayor oppose proposed 150% market rate increase; no 
+
+🟡 [GLEANER] NEUTRAL (0.5281)
+   Fee furore - Craft vendors, mayor oppose proposed 150% market rate increase; no 
+
+🟢 [GLEANER] POSITIVE (0.9312)
+   ‘Enormous honour’ - Rachel Scott wins second CFDA Womenswear Designer of the Yea
+
+🟡 [BOJ] NEUTRAL (0.8132)
+   Posts pagination
+
+──────────────────────────────────────────────────
+✅ Sentiment scoring complete.
+✓ Sentiment complete
+
+──────────────────────────────────────────────────
+▶ Topics — 10:19:27
+──────────────────────────────────────────────────
+2026-11-06 10:21:46,824 - BERTopic - Embedding - Transforming documents to embeddings.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Topic column already exists — skipping.
+Running BERTopic on 6 articles...
+
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 1542.68it/s]
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.12s/it]Batches: 100%|██████████| 1/1 [00:01<00:00,  1.12s/it]
+2026-11-06 10:21:52,448 - BERTopic - Embedding - Completed ✓
+2026-11-06 10:21:52,449 - BERTopic - Dimensionality - Fitting the dimensionality reduction algorithm
+2026-11-06 10:22:48,017 - BERTopic - Dimensionality - Completed ✓
+2026-11-06 10:22:48,018 - BERTopic - Cluster - Start clustering the reduced embeddings
+2026-11-06 10:22:48,039 - BERTopic - Cluster - Completed ✓
+2026-11-06 10:22:48,053 - BERTopic - Representation - Fine-tuning topics using representation models.
+2026-11-06 10:22:48,108 - BERTopic - Representation - Completed ✓
+  [average_buysell_spot] Flow Jamaica’s $16.1b quarterly revenue still trails pre-Melissa level
+  [fashion_designer_scott] Flow Jamaica’s $16.1b quarterly revenue still trails pre-Melissa level
+  [craft_vendors_pmc] Fee furore - Craft vendors, mayor oppose proposed 150% market rate inc
+  [craft_vendors_pmc] Fee furore - Craft vendors, mayor oppose proposed 150% market rate inc
+  [fashion_designer_scott] ‘Enormous honour’ - Rachel Scott wins second CFDA Womenswear Designer 
+  [average_buysell_spot] Posts pagination
+
+✅ Topics assigned to 6 articles.
+✓ Topics complete
+
+──────────────────────────────────────────────────
+▶ Embeddings — 10:22:52
+──────────────────────────────────────────────────
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Database ready at: C:\Users\watso\Github\Jamaican-News-Sentiment-Analyzer\news.db
+Embedding 6 articles...
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 2223.55it/s]
+  ✓ Flow Jamaica’s $16.1b quarterly revenue still trails pre-Melissa level
+  ✓ Flow Jamaica’s $16.1b quarterly revenue still trails pre-Melissa level
+  ✓ Fee furore - Craft vendors, mayor oppose proposed 150% market rate inc
+  ✓ Fee furore - Craft vendors, mayor oppose proposed 150% market rate inc
+  ✓ ‘Enormous honour’ - Rachel Scott wins second CFDA Womenswear Designer 
+  ✓ Posts pagination
+
+✅ Done — 6 articles embedded.
+✓ Embeddings complete
+
+Pipeline complete — 10:23:45
+Jamaica News Pipeline — 2026-11-06 21:08
+
+──────────────────────────────────────────────────
+▶ Scraper — 21:08:57
+──────────────────────────────────────────────────
+✗ Scraper failed with exit code 3221225786
+
+Pipeline stopped at Scraper.
+^CJamaica News Pipeline — 2026-11-06 21:09
+
+──────────────────────────────────────────────────
+▶ Scraper — 21:09:51
+──────────────────────────────────────────────────
+Database ready at: C:\Users\watso\Github\Jamaican-News-Sentiment-Analyzer\news.db
+[JIS] Fetching homepage...
+[JIS] Found 1 article links. Fetching content...
+  ✓ NewsHome|Page|News...
+[Gleaner] Fetching homepage...
+[Gleaner] Found 5 article links. Fetching content...
+  ✓ Flow Jamaica’s $16.1b quarterly revenue still trails pre-Melissa level...
+  ✓ Flow Jamaica’s $16.1b quarterly revenue still trails pre-Melissa level...
+  ✓ Fee furore - Craft vendors, mayor oppose proposed 150% market rate inc...
+  ✓ Fee furore - Craft vendors, mayor oppose proposed 150% market rate inc...
+  ✓ ‘Enormous honour’ - Rachel Scott wins second CFDA Womenswear Designer ...
+[Observer] Fetching homepage...
+[Observer] Found 4 article links. Fetching content...
+[PIOJ] Fetching homepage...
+[PIOJ] Found 0 links. Fetching content...
+[BOJ] Fetching homepage...
+[BOJ] Found 5 links. Fetching content...
+  ✓ Posts pagination...
+  ✓ Speeches Archive...
+  ✓ Op Ed Articles...
+  ✓ Press Centre...
+  ✓ Posts pagination...
+[STATIN] Fetching homepage...
+  ✗ [STATIN] Connection failed — check your internet or the URL
+
+✅ Done — 0 new articles saved, 11 duplicates skipped
+✓ Scraper complete
+
+──────────────────────────────────────────────────
+▶ Sentiment — 21:12:48
+──────────────────────────────────────────────────
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading sentiment model (first run downloads ~500MB)...
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 10143.85it/s]
+[transformers] [1mRobertaForSequenceClassification LOAD REPORT[0m from: cardiffnlp/twitter-roberta-base-sentiment-latest
+Key                         | Status     |  | 
+----------------------------+------------+--+-
+roberta.pooler.dense.weight | UNEXPECTED |  | 
+roberta.pooler.dense.bias   | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Model loaded.
+
+No unscored articles found. Run scraper.py first.
+✓ Sentiment complete
+
+──────────────────────────────────────────────────
+▶ Topics — 21:13:16
+──────────────────────────────────────────────────
+Topic column already exists — skipping.
+No unassigned articles found. Run scraper.py first.
+✓ Topics complete
+
+──────────────────────────────────────────────────
+▶ Embeddings — 21:13:58
+──────────────────────────────────────────────────
+Database ready at: C:\Users\watso\Github\Jamaican-News-Sentiment-Analyzer\news.db
+All articles already embedded.
+✓ Embeddings complete
+
+Pipeline complete — 21:14:29
